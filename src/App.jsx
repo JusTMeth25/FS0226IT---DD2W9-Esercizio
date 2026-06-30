@@ -9,8 +9,8 @@ import Footer from "./assets/components/Footer";
 function App() {
   return (
     <>
-      <div className="container w-50 py-4">
-        <Navigation />
+      <div className="container w-50 pb-4">
+         <Navigation />
         <Jumbotron />
         <ListBooks />
          <Footer />
