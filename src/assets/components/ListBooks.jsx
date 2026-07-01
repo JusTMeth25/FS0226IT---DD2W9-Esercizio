@@ -3,9 +3,15 @@ import books from "../data/fantasy.json";
 
 class ListBooks extends Component {
   render() {
+    const { query } = this.props;
+
+    const filteredBooks = books.filter((book) => {
+     return book.title.toLowerCase().includes(query.toLowerCase());
+    });
+
     return (
       <div className="row">
-        {books.map((book) => (
+        {filteredBooks.map((book) => (
           <div key={book.asin} className="col-12 col-md-4 col-lg-4">
             <div className="card h-100">
               <img src={book.img} className="card-img-top" alt={book.title} />
