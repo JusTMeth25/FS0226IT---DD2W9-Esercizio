@@ -18,7 +18,7 @@ class AddComments extends Component {
           Authorization:
             "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
         },
-      }
+      },
     )
       .then((response) => response.json())
       .then((data) => {
@@ -29,12 +29,17 @@ class AddComments extends Component {
   };
 
   componentDidMount() {
-    this.fetchComments();
+    if (this.props.asin) {
+      this.fetchComments();
+    }
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.asin !== this.props.asin) {
       this.fetchComments();
+      this.setState((prevState) => ({
+        comment: { ...prevState.comment, elementId: this.props.asin },
+      }));
     }
   }
 
@@ -61,16 +66,13 @@ class AddComments extends Component {
   };
 
   handleDelete = (commentId) => {
-    fetch(
-      "https://striveschool-api.herokuapp.com/api/comments/" + commentId,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
-        },
-      }
-    ).then(() => {
+    fetch("https://striveschool-api.herokuapp.com/api/comments/" + commentId, {
+      method: "DELETE",
+      headers: {
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
+      },
+    }).then(() => {
       alert("Commento eliminato con successo!");
       this.fetchComments();
     });
@@ -78,6 +80,16 @@ class AddComments extends Component {
 
   render() {
     const { comments } = this.state;
+    const { asin } = this.props;
+
+    if (!asin) {
+      return (
+        <div className="mt-4 p-3 border rounded text-muted text-center">
+          Seleziona un libro per vedere le recensioni
+        </div>
+      );
+    }
+
     return (
       <div className="mt-4 mb-4 p-3 border rounded">
         <form onSubmit={this.handleSubmit}>
@@ -114,7 +126,9 @@ class AddComments extends Component {
               key={c._id}
               className="list-group-item d-flex justify-content-between align-items-center"
             >
-              <span>{c.comment} — ⭐ {c.rate}</span>
+              <span>
+                {c.comment} — ⭐ {c.rate}
+              </span>
               <button
                 className="btn btn-danger btn-sm"
                 onClick={() => this.handleDelete(c._id)}
