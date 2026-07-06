@@ -12,7 +12,7 @@ class ListBooks extends Component {
     return (
       <div className="row align-items-start">
         {filteredBooks.map((book) => (
-          <div key={book.asin} className="col-6 mb-3">
+          <div key={book.asin} className="col-4 mb-3">
             <div
               className="card"
               onClick={() => onBookClick(book.asin)}
