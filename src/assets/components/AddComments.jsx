@@ -1,55 +1,38 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 
-class AddComments extends Component {
-  state = {
-    comment: {
-      comment: "",
-      rate: 1,
-      elementId: this.props.asin,
-    },
-    comments: [],
-  };
+function AddComments({ asin }) {
+  const [comment, setComment] = useState({
+    comment: "",
+    rate: 1,
+  });
+  const [comments, setComments] = useState([]);
 
-  fetchComments = () => {
-    fetch(
-      "https://striveschool-api.herokuapp.com/api/comments/" + this.props.asin,
-      {
-        headers: {
-          Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
-        },
+  const fetchComments = () => {
+    fetch("https://striveschool-api.herokuapp.com/api/comments/" + asin, {
+      headers: {
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
       },
-    )
+    })
       .then((response) => response.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          this.setState({ comments: data });
+          setComments(data);
         }
       });
   };
 
-  componentDidMount() {
-    if (this.props.asin) {
-      this.fetchComments();
+  useEffect(() => {
+    if (asin) {
+      fetchComments();
     }
-  }
+  }, [asin]);
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.asin !== this.props.asin) {
-      this.fetchComments();
-      this.setState((prevState) => ({
-        comment: { ...prevState.comment, elementId: this.props.asin },
-      }));
-    }
-  }
-
-  handleChange = (field, value) => {
-    this.setState((prevState) => ({
-      comment: { ...prevState.comment, [field]: value },
-    }));
+  const handleChange = (field, value) => {
+    setComment((prevComment) => ({ ...prevComment, [field]: value }));
   };
 
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     fetch("https://striveschool-api.herokuapp.com/api/comments/", {
       method: "POST",
@@ -58,89 +41,82 @@ class AddComments extends Component {
           "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(this.state.comment),
+      body: JSON.stringify({ ...comment, elementId: asin }),
     }).then(() => {
       alert("Recensione inviata con successo!");
-      this.fetchComments();
+      fetchComments();
     });
   };
 
-  handleDelete = (commentId) => {
+  const handleDelete = (commentId) => {
     fetch("https://striveschool-api.herokuapp.com/api/comments/" + commentId, {
       method: "DELETE",
       headers: {
         Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODI5OTY4NDgsImV4cCI6MTc4NDIwNjQ0OH0.xx75UqG21gDl4w9NX2P_rN7F2fWGOnT21VZCocth0yY",
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTczY2E0NjE0NDAwMTVlMDVjZjgiLCJpYXQiOjE3ODM0MzE5NTQsImV4cCI6MTc4NDY0MTU1NH0.vAZY1ljXNSz4xLWjyMzCwvXcBqTZy7wDlAa9Y5OYSjI",
       },
     }).then(() => {
       alert("Commento eliminato con successo!");
-      this.fetchComments();
+      fetchComments();
     });
   };
 
-  render() {
-    const { comments } = this.state;
-    const { asin } = this.props;
-
-    if (!asin) {
-      return (
-        <div className="mt-4 p-3 border rounded text-muted text-center">
-          Seleziona un libro per vedere le recensioni
-        </div>
-      );
-    }
-
+  if (!asin) {
     return (
-      <div className="mt-4 mb-4 p-3 border rounded">
-        <form onSubmit={this.handleSubmit}>
-          <div className="mb-2">
-            <label>Commento</label>
-            <textarea
-              className="form-control"
-              onChange={(e) => this.handleChange("comment", e.target.value)}
-            />
-          </div>
-          <div className="mb-2">
-            <label>Rating</label>
-            <select
-              className="form-select"
-              defaultValue={1}
-              onChange={(e) =>
-                this.handleChange("rate", Number(e.target.value))
-              }
-            >
-              <option value={1}>1</option>
-              <option value={2}>2</option>
-              <option value={3}>3</option>
-              <option value={4}>4</option>
-              <option value={5}>5</option>
-            </select>
-          </div>
-          <button type="submit" className="btn btn-primary mb-3">
-            Submit
-          </button>
-        </form>
-        <ul className="list-group">
-          {comments.map((c) => (
-            <li
-              key={c._id}
-              className="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <span>
-                {c.comment} — ⭐ {c.rate}
-              </span>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={() => this.handleDelete(c._id)}
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className="mt-4 p-3 border rounded text-muted text-center">
+        Seleziona un libro per vedere le recensioni
       </div>
     );
   }
+
+  return (
+    <div className="mt-4 mb-4 p-3 border rounded">
+      <form onSubmit={handleSubmit}>
+        <div className="mb-2">
+          <label>Commento</label>
+          <textarea
+            className="form-control"
+            onChange={(e) => handleChange("comment", e.target.value)}
+          />
+        </div>
+        <div className="mb-2">
+          <label>Rating</label>
+          <select
+            className="form-select"
+            defaultValue={1}
+            onChange={(e) => handleChange("rate", Number(e.target.value))}
+          >
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+            <option value={4}>4</option>
+            <option value={5}>5</option>
+          </select>
+        </div>
+        <button type="submit" className="btn btn-primary mb-3">
+          Submit
+        </button>
+      </form>
+      <ul className="list-group">
+        {comments.map((c) => (
+          <li
+            key={c._id}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
+            <span>
+              {c.comment} — ⭐ {c.rate}
+            </span>
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => handleDelete(c._id)}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export default AddComments;
